@@ -1,0 +1,179 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum AuctionStatus {
+  UPCOMING
+  LIVE
+  COMPLETED
+}
+
+enum PlayerStatus {
+  AVAILABLE
+  UNSOLD
+  SOLD
+  CURRENT
+  PENDING
+  SKIPPED
+}
+
+enum AuctionRole {
+  OWNER
+  OPERATOR
+  PARTICIPANT
+}
+
+model PlatformSettings {
+  id                 String   @id @default("global-settings")
+  loginEnabled       Boolean  @default(true)
+  signupEnabled      Boolean  @default(true)
+  defaultAuctionLimit Int     @default(3)
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  firstName       String   @default("")
+  lastName        String   @default("")
+  photoUrl        String?
+  phone           String?
+  category        String?
+  isActive        Boolean  @default(true)
+  isApproved      Boolean  @default(true) // Default true for self-registered, false for manual
+  auctionLimit    Int?     // Acts as "Credits" (Number of auctions they can create)
+  
+  auctions        AuctionUser[]
+  createdAuctions Auction[] @relation("AuctionOwner")
+  playerStats     Player[]  // Link to their participation in various auctions
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model AuctionUser {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  auctionId String
+  auction   Auction  @relation(fields: [auctionId], references: [id])
+  role      AuctionRole @default(PARTICIPANT)
+  
+  @@id([userId, auctionId])
+}
+
+model Auction {
+  id           String        @id @default(uuid())
+  name         String
+  code         String        @unique // For viewers to join via QR/link
+  status       AuctionStatus @default(UPCOMING)
+  logoUrl            String?
+  
+  isPublic           Boolean       @default(true) // Toggle for Anonymous Viewers
+  allowOperatorAdditions Boolean   @default(false) // Toggle for Operators to add other operators
+  
+  maxTeams           Int           @default(10)
+  minTeams           Int           @default(2)
+  minBidAmount       Float         @default(100)
+  maxBidAmount       Float?
+  defaultWallet      Float         @default(10000)
+  baseBidStep        Float         @default(500)
+  customBidIncrements Json?
+
+  ownerId            String?
+  owner              User?         @relation("AuctionOwner", fields: [ownerId], references: [id])
+
+  teams              Team[]
+  players            Player[]      // The roster for this auction
+  bids         Bid[]
+  users        AuctionUser[]       // Participants and Operators
+  auctionState AuctionState?
+  transactions Transaction[]
+  scheduledAt  DateTime?           // The date and time the auction is set to begin
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Team {
+  id          String   @id @default(uuid())
+  name        String
+  logoUrl     String?
+  budgetTotal Float
+  budgetSpent Float    @default(0)
+  maxBid      Float?   // Computed based on remaining budget and roster size rules
+  auctionId   String
+  auction     Auction  @relation(fields: [auctionId], references: [id])
+  players     Player[]
+  bids        Bid[]
+}
+
+model Player {
+  id          String       @id @default(uuid())
+  // Identity link
+  userId      String?      // Link to the central User profile
+  user        User?        @relation(fields: [userId], references: [id])
+  
+  // Local overrides/stats for THIS auction
+  name        String
+  number      Int?
+  photoUrl    String?
+  category    String?
+  age         Int?
+  basePrice   Float
+  soldPrice   Float?
+  status      PlayerStatus @default(PENDING)
+  teamId      String?
+  team        Team?        @relation(fields: [teamId], references: [id])
+  auctionId   String
+  auction     Auction      @relation(fields: [auctionId], references: [id])
+  bids        Bid[]
+}
+
+model Bid {
+  id        String   @id @default(uuid())
+  amount    Float
+  playerId  String
+  player    Player   @relation(fields: [playerId], references: [id])
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id])
+  auctionId String
+  auction   Auction  @relation(fields: [auctionId], references: [id])
+  timestamp DateTime @default(now())
+}
+
+model AuctionState {
+  id               String   @id @default(uuid())
+  auctionId        String   @unique
+  auction          Auction  @relation(fields: [auctionId], references: [id])
+  currentPlayerId  String?
+  currentBidAmount Float    @default(0)
+  currentTeamId    String?
+  currentRound     Int      @default(1)
+  status           String   @default("IDLE") // IDLE | BIDDING | PAUSED | COMPLETED
+  updatedAt        DateTime @updatedAt
+}
+
+model Transaction {
+  id         String   @id @default(uuid())
+  auctionId  String
+  auction    Auction  @relation(fields: [auctionId], references: [id])
+  type       String   // BID | SELL | UNSOLD | SKIP | UNDO
+  playerId   String?
+  teamId     String?
+  amount     Float?
+  meta       Json?    // Additional context (previous state for undo)
+  createdAt  DateTime @default(now())
+}
