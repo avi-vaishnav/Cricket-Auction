@@ -26,11 +26,14 @@ export default function AdminUsers() {
     role: "USER"
   });
 
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState<(User & { password?: string }) | null>(null);
   const [showAddPassword, setShowAddPassword] = useState(false);
   const [showEditPassword, setShowEditPassword] = useState(false);
 
   const [showPendingOnly, setShowPendingOnly] = useState(false);
+  const { confirm, ConfirmationModal } = useConfirm();
+
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
@@ -567,7 +570,7 @@ export default function AdminUsers() {
                   <div className="relative group">
                     <select
                       className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none cursor-pointer"
-                      value={editingUser.category}
+                      value={editingUser.category ?? ""}
                       onChange={(e) => setEditingUser({ ...editingUser, category: e.target.value })}
                       required
                     >

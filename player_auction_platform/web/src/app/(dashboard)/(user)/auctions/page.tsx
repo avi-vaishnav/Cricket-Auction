@@ -796,16 +796,18 @@ export default function UserAuctionsList() {
             name: viewingAuction.name,
             code: viewingAuction.code,
             logo: viewingAuction.logoUrl ? `${API_URL}${viewingAuction.logoUrl}` : undefined,
-            ownerName: viewingAuction.users?.find(u => u.role === "OWNER")?.user?.name || "Unknown",
+            ownerName: viewingAuction.users?.find((u: any) => u.role === "OWNER")?.user 
+              ? `${viewingAuction.users.find((u: any) => u.role === "OWNER")?.user.firstName} ${viewingAuction.users.find((u: any) => u.role === "OWNER")?.user.lastName}` 
+              : "Unknown",
             stats: {
               totalPlayers: viewingAuction._count?.players || 0,
               totalTeams: viewingAuction._count?.teams || 0,
-              totalBudget: (viewingAuction._count?.teams || 0) * viewingAuction.settings.defaultWallet,
+              totalBudget: (viewingAuction._count?.teams || 0) * (viewingAuction.settings?.defaultWallet || 100000),
             },
             settings: {
-              minBidAmount: viewingAuction.settings.minBidAmount,
-              maxBidAmount: viewingAuction.settings.maxBidAmount,
-              maxTeams: viewingAuction.settings.maxTeams,
+              minBidAmount: viewingAuction.settings?.minBidAmount || 0,
+              maxBidAmount: viewingAuction.settings?.maxBidAmount || null,
+              maxTeams: viewingAuction.settings?.maxTeams || 0,
             }
           }}
         />

@@ -1,4 +1,5 @@
 export type Role = 'ADMIN' | 'USER';
+export type AuctionRole = 'OWNER' | 'OPERATOR' | 'PARTICIPANT';
 
 export interface User {
   id: string;
@@ -11,6 +12,7 @@ export interface User {
   category?: string | null;
   photoUrl?: string | null;
   auctionLimit: number;
+  isApproved: boolean;
   _count?: {
     createdAuctions: number;
     playerStats: number;
@@ -54,6 +56,13 @@ export interface Bid {
   team?: Team;
 }
 
+export interface AuctionUser {
+  userId: string;
+  user: User;
+  auctionId: string;
+  role: AuctionRole;
+}
+
 export interface Auction {
   id: string;
   name: string;
@@ -65,8 +74,21 @@ export interface Auction {
   minTeams: number;
   minBidAmount: number;
   maxBidAmount?: number | null;
+  defaultWallet: number;
+  baseBidStep: number;
+  customBidIncrements?: any | null;
+  scheduledAt?: string | null;
   ownerId?: string | null;
   owner?: User;
+  users?: AuctionUser[];
+  settings?: { // For backward compatibility in some components
+    maxTeams: number;
+    minTeams: number;
+    minBidAmount: number;
+    maxBidAmount: number | null;
+    defaultWallet: number;
+    customBidIncrements: Record<string, number>;
+  };
   _count?: {
     teams: number;
     players: number;

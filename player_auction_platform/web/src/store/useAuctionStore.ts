@@ -69,7 +69,7 @@ export const useAuctionStore = create<AuctionStore>((set, get) => ({
     minTeams: 2,
     minBidAmount: 100,
     maxBidAmount: null,
-    customBidIncrements: null,
+    customBidIncrements: {},
   },
   stats: {
     totalPlayers: 0,
@@ -124,15 +124,15 @@ export const useAuctionStore = create<AuctionStore>((set, get) => ({
         settings: state.settings ? {
           maxTeams: state.settings.maxTeams ?? 10,
           minTeams: state.settings.minTeams ?? 2,
-          minBidAmount: state.settings.minBidAmount ?? 100,
-          maxBidAmount: state.settings.maxBidAmount ?? null,
-          customBidIncrements: state.settings.customBidIncrements ?? null,
+          minBidAmount: 100,
+          maxBidAmount: null,
+          customBidIncrements: state.settings.customBidIncrements ?? {},
         } : {
           maxTeams: 10,
           minTeams: 2,
           minBidAmount: 100,
           maxBidAmount: null,
-          customBidIncrements: null,
+          customBidIncrements: {},
         },
         stats: state.stats || {
           totalPlayers: 0,

@@ -112,7 +112,14 @@ export default function AuctionPlayers() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ players: [newPlayer] })
+        body: JSON.stringify({ 
+          players: [{
+            ...newPlayer,
+            number: parseInt(newPlayer.number) || null,
+            age: parseInt(newPlayer.age) || null,
+            basePrice: parseFloat(newPlayer.basePrice) || 0
+          }] 
+        })
       });
       if (!res.ok) throw new Error("Failed to add player");
 
@@ -146,7 +153,12 @@ export default function AuctionPlayers() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify(editingPlayer)
+        body: JSON.stringify({
+          ...editingPlayer,
+          number: typeof editingPlayer.number === 'string' ? parseInt(editingPlayer.number) : editingPlayer.number,
+          age: typeof editingPlayer.age === 'string' ? parseInt(editingPlayer.age) : editingPlayer.age,
+          basePrice: typeof editingPlayer.basePrice === 'string' ? parseFloat(editingPlayer.basePrice) : editingPlayer.basePrice
+        })
       });
       if (!res.ok) throw new Error("Failed to update player");
 
@@ -248,7 +260,7 @@ export default function AuctionPlayers() {
                 {/* Fallback to generated image if photoUrl is missing */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img 
-                  src={p.photoUrl || getDefaultAvatar(p.category)} 
+                  src={p.photoUrl || getDefaultAvatar(p.category ?? "")} 
                   alt={p.name} 
                   className="w-full h-full object-cover mix-blend-screen"
                 />
@@ -349,16 +361,16 @@ export default function AuctionPlayers() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1">Number</label>
-                  <input type="number" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white" value={editingPlayer.number || ""} onChange={e => setEditingPlayer({...editingPlayer, number: e.target.value})} />
+                  <input type="number" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white" value={editingPlayer.number || ""} onChange={e => setEditingPlayer({...editingPlayer, number: e.target.value as any})} />
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1">Age</label>
-                  <input type="number" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white" value={editingPlayer.age || ""} onChange={e => setEditingPlayer({...editingPlayer, age: e.target.value})} />
+                  <input type="number" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white" value={editingPlayer.age || ""} onChange={e => setEditingPlayer({...editingPlayer, age: e.target.value as any})} />
                 </div>
               </div>
               <div>
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1">Category</label>
-                <select className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white" value={editingPlayer.category} onChange={e => setEditingPlayer({...editingPlayer, category: e.target.value})}>
+                <select className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white" value={editingPlayer.category ?? ""} onChange={e => setEditingPlayer({...editingPlayer, category: e.target.value})}>
                   <option value="Batsman">Batsman</option>
                   <option value="Bowler">Bowler</option>
                   <option value="All Rounder">All Rounder</option>
@@ -367,7 +379,7 @@ export default function AuctionPlayers() {
               </div>
               <div>
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1">Base Price</label>
-                <input type="number" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white" value={editingPlayer.basePrice} onChange={e => setEditingPlayer({...editingPlayer, basePrice: e.target.value})} required />
+                <input type="number" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white" value={editingPlayer.basePrice} onChange={e => setEditingPlayer({...editingPlayer, basePrice: e.target.value as any})} required />
               </div>
               <button type="submit" disabled={isSubmitting} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl mt-4 flex items-center justify-center gap-2">
                 {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : "Update Details"}

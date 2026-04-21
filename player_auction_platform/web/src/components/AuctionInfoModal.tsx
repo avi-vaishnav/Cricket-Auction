@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { X, Users, Trophy, Wallet, Calculator, User as UserIcon, Hash, Target, Settings2 } from "lucide-react";
+import { X, Users, Trophy, Wallet, Calculator, User as UserIcon, Hash, Target, Settings2, Trash2 } from "lucide-react";
 
 interface AuctionInfoModalProps {
   isOpen: boolean;
